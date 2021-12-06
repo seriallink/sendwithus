@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Sprintf("log id: %s", log.Id)
+	fmt.Sprintf("log: %s", log.ReceiptId)
 }
 ```
 
