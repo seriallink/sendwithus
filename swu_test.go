@@ -69,7 +69,7 @@ func TestSend(t *testing.T) {
 			Name:    "John Doe",
 			Address: os.Getenv("SWU_CUSTOMER_EMAIL"),
 		},
-		EmailData: map[string]string{
+		EmailData: map[string]interface{}{
 			"first_name": "John",
 			"last_name":  "Doe",
 		},
