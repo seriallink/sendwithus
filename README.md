@@ -1,11 +1,11 @@
-# SendWithUs-Go
+# SendWithUs SDK in Go 
 
 This is a simple package to interface with [SendWithUs](https://sendwithus.com) using Golang.
 
 ## Installation
 
 ```bash
-$ go get github.com/elbuo8/sendwithus_go
+$ go get github.com/seriallink/sendwithus
 ```
 
 ## Example
