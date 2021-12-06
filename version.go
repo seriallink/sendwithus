@@ -1,7 +1,7 @@
 package swu
 
 type Version struct {
-	ID        string `json:"id,omitempty"`
+	Id        string `json:"id,omitempty"`
 	Name      string `json:"name,omitempty"`
 	HTML      string `json:"html,omitempty"`
 	Text      string `json:"text,omitempty"`
