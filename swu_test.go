@@ -3,87 +3,129 @@ package swu
 import (
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSWU(t *testing.T) {
-	api := New("key")
-	if api == nil {
-		t.Error("New should not return nil")
-	}
+func init() {
+	test = New(os.Getenv("SWU_KEY"))
 }
 
+var test *Api
+
 func TestTemplates(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	_, err := api.Emails()
-	if err != nil {
-		t.Error(err)
-	}
+	_, err := test.Emails()
+	assert.NoError(t, err)
 }
 
 func TestGetTemplate(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	_, err := api.GetTemplate("tem_bRKXvNLAXTG8EGxhut3gCe")
-	if err != nil {
-		t.Error(err)
-	}
+	_, err := test.GetTemplate(os.Getenv("SWU_TEMPLATE_ID"))
+	assert.NoError(t, err)
 }
 
 func TestGetTemplateVersion(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	_, err := api.GetTemplateVersion("tem_bRKXvNLAXTG8EGxhut3gCe", "ver_Hh35dZhnffghidEy6VeHKL")
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestUpdateTemplateVersion(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	_, err := api.UpdateTemplateVersion("tem_bRKXvNLAXTG8EGxhut3gCe", "ver_Hh35dZhnffghidEy6VeHKL",
-		&SWUVersion{
-			Name:    "Test",
-			Subject: "Test",
-			Text:    "test",
-		})
-	if err != nil {
-		t.Error(err)
-	}
+	_, err := test.GetTemplateVersion(os.Getenv("SWU_TEMPLATE_ID"), os.Getenv("SWU_VERSION_ID"))
+	assert.NoError(t, err)
 }
 
 func TestCreateTemplate(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	_, err := api.CreateTemplate(&SWUVersion{
-		Name:    "test",
-		Subject: "test",
+	_, err := test.CreateTemplate(&Version{
+		Name:    "Test",
+		Subject: "Test",
 		Text:    "ALOHA",
 	})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestCreateTemplateVersion(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	_, err := api.CreateTemplateVersion("tem_nXAPFGXQXFKcibJHdm9PZ9", &SWUVersion{
-		Name:    "test",
-		Subject: "test",
-		Text:    "ALOHA1",
+	_, err := test.CreateTemplateVersion(os.Getenv("SWU_TEMPLATE_ID"), &Version{
+		Name:    "Test",
+		Subject: "Test",
+		Text:    "Hello Template Version!",
 	})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
+}
+
+func TestUpdateTemplateVersion(t *testing.T) {
+	_, err := test.UpdateTemplateVersion(os.Getenv("SWU_TEMPLATE_ID"), os.Getenv("SWU_VERSION_ID"),
+		&Version{
+			Name:    "Test",
+			Subject: "Test",
+			Text:    "Hello New Template Version!",
+		})
+	assert.NoError(t, err)
 }
 
 func TestSend(t *testing.T) {
-	api := New(os.Getenv("SWU_KEY"))
-	email := &SWUEmail{
-		ID: "tem_bRKXvNLAXTG8EGxhut3gCe",
-		Recipient: &SWURecipient{
-			Address: "yamil@sendgrid.com",
+	email := &Email{
+		Id: os.Getenv("SWU_TEMPLATE_ID"),
+		Sender: &Sender{
+			Recipient: &Recipient{
+				Name:    "NoReply",
+				Address: os.Getenv("SWU_SENDER_EMAIL"),
+			},
 		},
-		EmailData: make(map[string]string),
+		Recipient: &Recipient{
+			Name:    "John Doe",
+			Address: os.Getenv("SWU_CUSTOMER_EMAIL"),
+		},
+		EmailData: map[string]string{
+			"first_name": "John",
+			"last_name":  "Doe",
+		},
 	}
-	err := api.Send(email)
-	if err != nil {
-		t.Error(err)
+	log, err := test.Send(email)
+	assert.NoError(t, err)
+	assert.True(t, log.Success)
+}
+
+func TestGetLog(t *testing.T) {
+	logId := os.Getenv("SWU_LOG_ID")
+	log, err := test.GetLog(logId)
+	assert.NoError(t, err)
+	assert.Equal(t, logId, log.Id)
+}
+
+func TestGetLogs(t *testing.T) {
+	logs, err := test.GetLogs(&LogQuery{Count: 10})
+	assert.NoError(t, err)
+	assert.NotZero(t, len(logs))
+}
+
+func TestGetCustomerLogs(t *testing.T) {
+	resp, err := test.GetCustomerLogs(os.Getenv("SWU_CUSTOMER_EMAIL"), &LogQuery{Count: 10})
+	assert.NoError(t, err)
+	assert.True(t, resp.Success)
+}
+
+func TestResendLog(t *testing.T) {
+	log, err := test.ResendLog(os.Getenv("SWU_LOG_ID"))
+	assert.NoError(t, err)
+	assert.True(t, log.Success)
+}
+
+func TestGetCustomer(t *testing.T) {
+	email := os.Getenv("SWU_CUSTOMER_EMAIL")
+	resp, err := test.GetCustomer(email)
+	assert.NoError(t, err)
+	assert.True(t, resp.Success)
+	if err == nil {
+		assert.Equal(t, email, resp.Customer.Email)
 	}
+}
+
+func TestSaveCustomer(t *testing.T) {
+	customer := &Customer{
+		Email:  os.Getenv("SWU_CUSTOMER_EMAIL"),
+		Locale: "pt-BR",
+	}
+	resp, err := test.SaveCustomer(customer)
+	assert.NoError(t, err)
+	assert.True(t, resp.Success)
+}
+
+func TestDeleteCustomer(t *testing.T) {
+	resp, err := test.DeleteCustomer(os.Getenv("SWU_CUSTOMER_EMAIL"))
+	assert.NoError(t, err)
+	assert.True(t, resp.Success)
 }

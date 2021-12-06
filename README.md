@@ -10,34 +10,46 @@ $ go get github.com/seriallink/sendwithus
 
 ## Example
 
-This is a brief example on how to send 1 email. You can find more examples by looking at [the test cases](https://github.com/elbuo8/sendwithus_go/blob/master/swu_test.go).
+This is a brief example on how to send an email. You can find more examples by looking at [the test cases](https://github.com/seriallink/sendwithus/blob/master/swu_test.go).
 
 ```go
 package main
 
 import (
-  "github.com/seriallink/sendwithus"
-  "fmt"
+	"fmt"
+	"os"
+	
+	"github.com/seriallink/sendwithus"
 )
 
 func main() {
-	api := New("SWU_KEY")
-	email := &SWUEmail{
-		ID: "EMAIL_TEMPLATE_ID",
-		Recipient: &SWURecipient{
-			Address: "example@email.com",
+	api := swu.New(os.Getenv("SWU_API_KEY"))
+	email := &swu.Email{
+		Id: os.Getenv("SWU_TEMPLATE_ID"),
+		Sender: &swu.Sender{
+			Recipient: &swu.Recipient{
+				Name:    "NoReply",
+				Address: os.Getenv("SWU_SENDER_EMAIL"),
+			},
 		},
-		EmailData: make(map[string]string),
+		Recipient: &swu.Recipient{
+			Name:    "John Doe",
+			Address: os.Getenv("SWU_CUSTOMER_EMAIL"),
+		},
+		EmailData: map[string]string{
+			"first_name": "John",
+			"last_name":  "Doe",
+		},
 	}
-	err := api.Send(email)
+	log, err := api.Send(email)
 	if err != nil {
-      fmt.Println(err)
+		panic(err)
 	}
+	fmt.Sprintf("log id: %s", log.Id)
 }
-
 ```
 
-## [Documentation (GoDoc)](https://github.com/elbuo8/sendwithus_go/blob/master/swu_test.go)
+## [API Documentation](https://support.sendwithus.com/api/)
 
 ## MIT License
 
