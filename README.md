@@ -16,7 +16,7 @@ This is a brief example on how to send 1 email. You can find more examples by lo
 package main
 
 import (
-  "github.com/elbuo8/sendwithus_go"
+  "github.com/seriallink/sendwithus"
   "fmt"
 )
 
